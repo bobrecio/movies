@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Movies</title>
+    <script src="res/js/jquery-1.11.2.min.js"></script>
+    <?php
+          function movieList(){
+                $dirs = array("../movies01","../movies02","../movies03");
+                foreach ($dirs as $d){
+                  $dir = $d;
+                  $files = scandir($dir);
+                  foreach ($files as $files){
+                    $path = $dir."/".$files;      
+                    $now = getdate();
+                    $filedate = filectime($path);
+                    $age = floor(($now[0] - $filedate) / 3600 / 24);
+                    $thisFileType = strtolower(substr($path, -3));                
+                    $movieFileTypes = array("mkv", "avi", "mp4");
+
+                    if (is_file($path) && (in_array($thisFileType, $movieFileTypes))){
+                          $start = strlen($dir) + 1;                  
+                          $path0 = ($dir == "") ? $path : substr($path, $start);
+                          $path1 = str_replace("."," ",$path0);
+                          $title = substr(ucwords($path1), 0, strlen($path1)-4);
+                          $search = $path;
+                          $isNew = ($age <= 10) ? "<span style=color:yellow;font-size:.8em > new</span>" : "";
+                          $thisMovie = "<li><a href=getMovieInfo.htm?" . $search . " target=info>" . $title . "</a>" . $isNew . "</li>";
+                          $movies = ($movies == "") ? $thisMovie : $movies . "\n" . $thisMovie;
+                     }
+                   }
+                 }
+              return $movies;
+          }
+        ?>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var $files = $('#fileList li');
+            $('#jqTest').text("jquery works"); //is jq working?
+            $('#filter').keyup(function() {
+                var str = $(this).val();
+                str = (str.indexOf(" ") > 0) ? str.split(" ") : str;
+                for (i = 0; i < str.length; i++) {
+                    var re = new RegExp(str, "i"); // "i" means it's case-Insensitive
+                    $files.show().filter(function() {
+                        return !re.test($(this).text());
+                    }).hide();
+                }
+            }); //end of filter-keyup function
+
+            $("#fileList li").sort(asc_sort).appendTo('#fileList');
+            //$("#debug").text("Output:");
+          
+            function resetfilter() {
+                $('filter').text("");
+            }
+          
+            // accending sort
+            function asc_sort(a, b) {
+                return ($(b).text()) < ($(a).text()) ? 1 : -1;
+            }
+            /*
+            // decending sort
+            function dec_sort(a, b){
+                return ($(b).text()) > ($(a).text()) ? 1 : -1;    
+            }
+            */
+        }); //end of jQuery wrapper
+    </script>
+    <style>
+        body{
+    background:black;
+    text-align: center;
+    color:silver;
+	font-family:helvetica;
+	font-size:1.5em;
+	text-align:left;
+  }
+  a{
+    color:silver;
+    text-decoration:none;
+  }
+	#fileList{
+        visibility:visible;
+        overflow-y:auto;
+        height:600px;
+        margin:0;
+        width:90%;
+    }
+    #fileList li{
+        list-style-type:none;
+        margin:0 10px 0 0;
+        text-indent:-30px;
+        width:100%;
+    }
+    div{
+        vertical-align:top}
+    iframe{
+        width:100%;
+        height:600px;
+        margin:0 10px 0 0;
+    }
+    #content{
+        width:100%;
+        display:block;
+        height:610px;
+    }
+    #movieList{
+        width:50%;
+        float:left;
+        display:inline;
+    }
+    #infoFrame{
+        width:50%;
+        float:right;
+        display:inline;
+    }
+  </style>
+</head>
+
+<body>
+    <div id=search>
+        Filter:
+        <input type=text id=filter />
+        <button onclick="document.getElementById('filter').value ='';$('#fileList li').show()">reset</button>
+    </div>
+    <hr>
+    <div id="content">
+        <div id="movieList">
+            <ul id='fileList'>
+                <?php echo movieList();?>
+            </ul>
+        </div>
+        <div id="infoFrame"><iframe name="info" src="getMovieInfo.htm"></iframe></div>
+    </div>
+    <hr>
+</body>
+
+</html>
